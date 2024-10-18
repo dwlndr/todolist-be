@@ -17,9 +17,50 @@ module.exports = {
     res.json({ message: "Todo added successfully" });
   },
 
-  deleteTodo: async (req, res) => {
+  deleteTodoById: async (req, res) => {
     const { id } = req.params;
-    await Todo.findByIdAndDelete(id);
+
+    const todo = await Todo.findOneAndDelete({ _id: id, user: req.user.id });
+
+    if (!todo) {
+      return res.status(404).json({ message: "Todo not found" });
+    }
+
     res.json({ message: "Todo deleted successfully" });
   },
+
+  deleteAllTodos: async (req, res) => {
+    await Todo.deleteMany({ user: req.user.id });
+    res.json({ message: "All todos deleted successfully" });
+  },
+
+  getTodoById: async (req, res) => {
+    const { id } = req.params;
+    const todo = await Todo.findOne({ _id: id, user: req.user.id });
+    
+    if (!todo) {
+      return res.status(404).json({ message: "Todo not found" });
+    }
+    
+    res.json({ data: todo });
+  },
+
+  updateTodoById: async (req, res) => {
+    const { id } = req.params;
+    const { title, description } = req.body;
+
+    const todo = await Todo.findOneAndUpdate(
+      { _id: id, user: req.user.id }, 
+      { title, description }, 
+      { new: true }
+    );
+
+    if (!todo) {
+      return res.status(404).json({ message: "Todo not found" });
+    }
+
+    res.json({ message: "Todo updated successfully", data: todo });
+  },
+
+
 };
